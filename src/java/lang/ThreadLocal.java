@@ -71,6 +71,7 @@ import java.util.function.Supplier;
  * @author  Josh Bloch and Doug Lea
  * @since   1.2
  */
+//https://blog.csdn.net/weixin_43767015/article/details/106940089
 public class ThreadLocal<T> {
     /**
      * ThreadLocals rely on per-thread linear-probe hash maps attached

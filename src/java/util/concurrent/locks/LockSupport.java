@@ -117,9 +117,22 @@ import sun.misc.Unsafe;
  *   }
  * }}</pre>
  */
+/*
+LockSupport用来创建锁和其他同步类的基本线程阻塞原语。简而言之，当调用LockSupport.park时，表示当前线程将会等待，直至获得许可，
+当调用LockSupport.unpark时，必须把等待获得许可的线程作为参数进行传递，好让此线程继续运行。
+ LockSupport的核心函数都是基于Unsafe类中定义的park和unpark函数。
+ public native void park(boolean isAbsolute, long time);
+ public native void unpark(Thread thread);
+*/
 public class LockSupport {
+
     private LockSupport() {} // Cannot be instantiated.
 
+    /**
+     * 设置阻塞线程
+     * @param t
+     * @param arg   设置造成线程阻塞的对象信息，用于：debug、jstack排查
+     */
     private static void setBlocker(Thread t, Object arg) {
         // Even though volatile, hotspot doesn't need a write barrier here.
         UNSAFE.putObject(t, parkBlockerOffset, arg);
@@ -172,7 +185,9 @@ public class LockSupport {
     public static void park(Object blocker) {
         Thread t = Thread.currentThread();
         setBlocker(t, blocker);
+        // 获取许可,第一个参数表示，表示相对时间 ，第二个参数 0：表示无限等待（一直阻塞在此）等待该线程的unpark函数被调用
         UNSAFE.park(false, 0L);
+        //清楚blocker
         setBlocker(t, null);
     }
 
@@ -301,6 +316,7 @@ public class LockSupport {
      * for example, the interrupt status of the thread upon return.
      */
     public static void park() {
+        // 获取许可，设置时间为无限长，直到可以获取许可，等待unpark
         UNSAFE.park(false, 0L);
     }
 
@@ -392,6 +408,7 @@ public class LockSupport {
 
     // Hotspot implementation via intrinsics API
     private static final sun.misc.Unsafe UNSAFE;
+    // 表示内存偏移地址
     private static final long parkBlockerOffset;
     private static final long SEED;
     private static final long PROBE;
